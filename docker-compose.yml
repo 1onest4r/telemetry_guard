@@ -1,0 +1,36 @@
+services:
+  postgres:
+    restart: unless-stopped
+    container_name: telemetry-db
+    environment:
+      POSTGRES_DB: userdb
+      POSTGRES_PASSWORD: user
+      POSTGRES_USER: user
+    image: postgres:16
+    networks:
+      default: null
+    volumes:
+      - type: volume
+        source: pg_volume
+        target: /var/lib/postgresql/data
+        volume: {}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$${POSTGRES_USER:-postgres}" -d "$${POSTGRES_DB:-postgres}"
+          -h localhost || exit 1
+      timeout: 10s
+      interval: 30s
+      retries: 5
+    ports:
+      - mode: ingress
+        target: 5432
+        published: "5432"
+        protocol: tcp
+networks:
+  default:
+    name: telemtry_guard_default
+volumes:
+  pg_volume:
+    name: telemtry_guard_pg_volume
+    driver: local
